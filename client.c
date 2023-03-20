@@ -1,16 +1,17 @@
-#include "./options.h"
+#include "options.h"
 
-struct me_t {
+typedef struct me_t {
     int clifd;
     char *buf;
     char *username;
-};
+} me_t;
+me_t me;
 
 void help() {
     printf("HELP:\n");
     printf("  /help or /h      print this message\n");
     printf("  /list or /l      get list of users\n");
-    // printf("  /prevmsg or /pr  get old messages\n");
+    printf("  /prevmsg or /pr  get previous messages\n");
     // printf("  /rn           rename yourself\n");
 }
 
@@ -31,6 +32,7 @@ void recv_users(int clifd) {
         else
             printf("; ");
     }
+    printf("\n");
     free(buf);
 }
 
@@ -39,7 +41,7 @@ void recv_disconnected(int clifd) {
     char username[MAX_USERNAME_LEN];
     status = read(clifd, username, MAX_USERNAME_LEN);
     printf("\033[2K\r"); // go up one line and clear it
-    printf("User '%s' disconnected", username);
+    printf("User '%s' disconnected\n", username);
 }
 
 void recv_connected(int clifd) {
@@ -47,34 +49,91 @@ void recv_connected(int clifd) {
     char username[MAX_USERNAME_LEN];
     status = read(clifd, username, MAX_USERNAME_LEN);
     printf("\033[2K\r"); // go up one line and clear it
-    printf("User '%s' connected", username);
+    printf("User '%s' connected\n", username);
 }
 
 void recv_msg_list(int clifd) {
     int status;
-    int nr_msg;
+    int msg_list_size;
     char msg_buf[MAX_BUF_LEN];
     char username_buf[MAX_BUF_LEN];
 
-    status = read(clifd, &nr_msg, sizeof(int));
-    if (status < 0) return;
-    if (nr_msg < 0) {
-        INFO("Server doesn't allow/support previous messages");
+    status = read(clifd, &msg_list_size, sizeof(int));
+    if (msg_list_size <= 0) {
+        printf("No messages sent yet or old messages disabled");
         return;
     }
-
-    for (int i = 0; i < nr_msg; i++) {
-        status = read(clifd, username_buf, MAX_BUF_LEN);
-        if (status < 0) return;
-        status = read(clifd, msg_buf, MAX_BUF_LEN);
-        printf("\033[2K\r"); // go up one line and clear it
-        printf("MSG: %s: %s\n", username_buf, msg_buf);
+    if (status < 0) {
+        ERROR("Couldn't read msg_list_size (status: %d)", status);
+        return;
     }
+    DEBUG("msg_list size: %d", msg_list_size);
+
+    char *buf = malloc(msg_list_size);
+    int total = 0;
+    status = 0;
+    while (total < msg_list_size && status >= 0) {
+        status = read(clifd, buf+total, msg_list_size-total);
+        if (status < 0) return;
+        total += status;
+    }
+    int bp = 0, mo = 0;
+    int nr = 0;
+
+    mo = strlen(buf+bp)+1;
+    if (mo + bp+strlen(buf+bp+mo)+1 >= msg_list_size
+            && *(buf+bp) == 'C' && *(buf+bp+1) == 0
+            && strcmp(me.username, buf+bp+mo) == 0) {
+        // printf("\033[F\033[2K\r"); // go up one line and clear line
+        printf("\033[2K\r"); // clear line
+        DEBUG("Your own login msg");
+        bp += mo + strlen(buf+bp+mo)+1;
+    } else {
+        printf("\033[2K\r"); // clear line
+        printf("    --- OLD MESSAGES ---    \n");
+    }
+    while (bp < msg_list_size) {
+        mo = strlen(buf+bp)+1;
+
+        // skip last msg if it's your own login message
+        // printf("%d %lu ", bp, bp + mo + strlen(buf+bp+mo)+1);
+        if (mo + bp+strlen(buf+bp+mo)+1 >= msg_list_size
+                && *(buf+bp) == 'C' && *(buf+bp+1) == 0
+                && strcmp(me.username, buf+bp+mo) == 0) {
+            DEBUG("Your own login msg");
+            break;
+        }
+
+        if (*(buf+bp) == 'C' && *(buf+bp+1) == 0) {
+            printf("User '%s' connected\n", buf+bp+mo);
+        } else if (*(buf+bp) == 'D' && *(buf+bp+1) == 0) {
+            printf("User '%s' disconnected\n", buf+bp+mo);
+        } else {
+            printf("(%s): %s\n", buf+bp, buf+bp+mo);
+        }
+
+        nr ++;
+        bp += mo + strlen(buf+bp+mo)+1;
+    }
+
+    if (nr > 0)
+        printf("--- RECIEVED %d MESSAGES ---\n", nr);
+    
+    free(buf);
+    // printf("\033[2K\r"); // go up one line and clear it
+    // printf("MSG: %s: %s\n", username_buf, msg_buf);
 }
 
 void *send_loop(void *arg) {
     struct me_t me = *(struct me_t *)arg;
     // char buf[MAX_BUF_LEN];
+
+    INFO("Getting previously sent messages");
+    {
+        char id = P_MSG_LIST;
+        int status = write(me.clifd, &id, 1);
+        if (status < 0) ERROR("Couldn't request msg_list");
+    }
 
     int pos = 0, status = 0;
     while (status >= 0) {
@@ -102,8 +161,8 @@ void *send_loop(void *arg) {
             continue;
         } else if (strcmp("/list", me.buf) == 0 || strcmp("/l", me.buf) == 0) {
             id = P_USER_LIST;
-        // } else if (strcmp("/prevmsg", me.buf) == 0 || strcmp("/pr", me.buf) == 0) {
-        //     id = P_MSG_LIST;
+        } else if (strcmp("/prevmsg", me.buf) == 0 || strcmp("/pr", me.buf) == 0) {
+            id = P_MSG_LIST;
         } else if (me.buf[0] == '/') {
             printf("Type /help for help\n");
             continue;
@@ -122,9 +181,9 @@ void *send_loop(void *arg) {
             case P_USER_LIST:
                 DEBUG("Recieving users");
                 break;
-            // case P_MSG_LIST:
-            //     DEBUG("Recieving old messages");
-            //     break;
+            case P_MSG_LIST:
+                DEBUG("Recieving previous messages");
+                break;
             default:
                 INFO("Invalid id");
                 break;
@@ -166,14 +225,10 @@ int main(int argc, char *argv[]) {
 
     pthread_t thread_id;
 
-    INFO("Getting previously sent messages");
-    {
-        char id = P_MSG_LIST;
-        status = write(clifd, &id, 1);
-    }
-
     char buf[MAX_BUF_LEN];
-    struct me_t me = {clifd, buf, username};
+    me.clifd = clifd;
+    me.buf = buf;
+    me.username = username;
     pthread_create(&thread_id, NULL, send_loop, &me);
 
     char msg_buf[MAX_BUF_LEN];
@@ -192,7 +247,7 @@ int main(int argc, char *argv[]) {
                 memset(msg_buf, 0, MAX_BUF_LEN);
                 status = read(clifd, msg_buf, MAX_BUF_LEN);
                 printf("\n\033[F\033[2K\r"); // go up one line and clear it
-                printf("(%s): %s", username_buf, msg_buf);
+                printf("(%s): %s\n", username_buf, msg_buf);
                 break;
             case P_USER_LIST:
                 DEBUG("Recieving users (main)");
@@ -206,15 +261,20 @@ int main(int argc, char *argv[]) {
                 DEBUG("Client connected");
                 recv_connected(me.clifd);
                 break;
-            // case P_MSG_LIST:
-            //     DEBUG("Recieving old messages");
-            //     recv_msg_list(me.clifd);
-            //     break;
+            case P_MSG_LIST:
+                DEBUG("Recieving previous messages");
+                recv_msg_list(me.clifd);
+                break;
+            case P_SERVER_END:
+                printf("\n");
+                INFO("Server closed");
+                exit(0);
+                break;
             default:
                 INFO("Unknown msg type: %d", type);
         }
         if (status < 0) break;
-        printf("\n%s> ", username);
+        printf("%s> ", username);
         fflush(stdout);
     }
 
