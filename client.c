@@ -1,10 +1,5 @@
-#include "options.h"
+#include "client.h"
 
-typedef struct me_t {
-    int clifd;
-    char *buf;
-    char *username;
-} me_t;
 me_t me;
 
 void help() {
@@ -192,7 +187,7 @@ void *send_loop(void *arg) {
     return 0;
 }
 
-int main(int argc, char *argv[]) {
+int client(char username[MAX_USERNAME_LEN]) {
     INFO("Creating client socket");
     int clifd = socket(AF_INET, SOCK_STREAM, 0);
     if (clifd < 0) {
@@ -214,9 +209,6 @@ int main(int argc, char *argv[]) {
         return 0;
     }
     
-    char username[MAX_USERNAME_LEN];
-    memset(username, 0, MAX_USERNAME_LEN);
-    strcpy(username, argv[1]);
     INFO("Sending username (%lu) '%s'", strlen(username), username);
     int status = send(clifd, username, strlen(username)+1, 0);
     if (status < 0) {
