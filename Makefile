@@ -1,28 +1,23 @@
 BUILD := ./build/
 
-help:
-	@echo select what to build
+# DEBUG := -D__DEBUG__
+
+C_SRC := $(wildcard *.c)
+C_OBJ := $(C_SRC:%.c=$(BUILD)%.c.o)
+
+$(BUILD)cch: $(C_OBJ)
+	mkdir -p $(dir $@)
+	gcc -o $@ $(C_OBJ)
 
 $(BUILD)%.c.o: %.c
 	mkdir -p $(dir $@)
-	gcc -c -o $@ $<
+	gcc -c -o $@ $< $(DEBUG)
 
-S_SRC := server.c client_list.c msg_list.c
-S_OBJ := $(S_SRC:%.c=$(BUILD)%.c.o)
-C_SRC := client.c
-C_OBJ := $(C_SRC:%.c=$(BUILD)%.c.o)
-
-$(BUILD)server: $(S_OBJ)
-	gcc -o $@ $(S_OBJ)
-run_server: clear $(BUILD)server
-	$(BUILD)server
-
-$(BUILD)client: $(C_OBJ)
-	gcc -o $@ $(C_OBJ)
-run_client: clear $(BUILD)client
+run_server: clear $(BUILD)cch
+	$(BUILD)cch -s
+run_client: clear $(BUILD)cch
 	sleep 0.1
-	$(BUILD)client user1
-
+	$(BUILD)cch user1
 
 .PHONY: clear clean
 clear:
