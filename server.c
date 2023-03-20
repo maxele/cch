@@ -1,7 +1,9 @@
 #include "server.h"
+#include "msg_list.h"
 
 client_list_t client_list;
 msg_list_t msg_list;
+char *msg_list_file;
 
 // MANUAL:
 // -> char[256]:     username (ends in 0)
@@ -15,6 +17,11 @@ void sigInt(int s) {
     for (int i = 0; i < client_list.nr_clients; i++) {
         write(client_list.clients[i].clifd, &type, 1);
         DEBUG("Sharing P_SERVER_END to %s", client_list.clients[i].username);
+    }
+
+    if (msg_list_file != 0) {
+        INFO("Writing msg_list to file");
+        msg_list_write(&msg_list, msg_list_file);
     }
     exit(0);
 }
@@ -77,6 +84,9 @@ void *listenclient(void *arg) {
             break;
         case P_MSG_LIST:
             msg_list_send(&msg_list, client);
+            break;
+        case P_USER_RENAME:
+            client_list_rename(&client_list, client.clifd);
             break;
         default:
             INFO("Unknown id %d from '%s'", id, client.username);
@@ -159,12 +169,17 @@ int init_socket(struct sockaddr_in *addr, int port) {
     return servfd;
 }
 
-int server(int port) {
+int server(int port, char *filename) {
+    msg_list_file = filename;
     sigaction(SIGPIPE, &(struct sigaction){SIG_IGN}, NULL);
     signal(SIGINT, sigInt);
 
     msg_list_init(&msg_list);
     client_list_init(&client_list);
+
+    if (msg_list_file != 0) {
+        msg_list_read(&msg_list, msg_list_file);
+    }
 
     struct sockaddr_in addr;
     INFO("Initialized server socket");

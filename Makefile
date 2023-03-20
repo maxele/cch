@@ -1,6 +1,6 @@
 BUILD := ./build/
 
-# DEBUG := -D__DEBUG__
+DEBUG := -D__DEBUG__
 
 C_SRC := $(wildcard *.c)
 C_OBJ := $(C_SRC:%.c=$(BUILD)%.c.o)

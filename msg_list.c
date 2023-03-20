@@ -1,4 +1,5 @@
 #include "msg_list.h"
+#include <stdio.h>
 
 void msg_list_init(msg_list_t *msg_list) {
     msg_list->enabled = true;
@@ -67,13 +68,49 @@ void msg_list_send(msg_list_t *msg_list, client_t client) {
     status = write(client.clifd, &id, 1);
     status = write(client.clifd, &msg_list->b_used, sizeof(msg_list->b_used));
     status = write(client.clifd, msg_list->buf, msg_list->b_used);
-    // int bp = 0, mo = 0;
-    // for (int i = 0; i < msg_list->nr; i++) {
-    //     mo = strlen(msg_list->buf+bp)+1;
-    //     DEBUG("%s: %s", msg_list->buf+bp, msg_list->buf+bp+mo);
-    //
-    //     bp += mo + strlen(msg_list->buf+bp+mo)+1;
-    // }
 }
 
+void msg_list_read(msg_list_t *msg_list, char *filename) {
+    if (!msg_list->enabled) {
+        ERROR("Can't read log file, because msg_list diabled");
+        return;
+    }
 
+    FILE *f = fopen(filename, "r");
+    char buf[32];
+    fscanf(f, "max: %s\n", buf);
+    if (atoi(buf) >= 0)
+        msg_list->b_max = atoi(buf);
+    fscanf(f, "used: %s\n", buf);
+    if (atoi(buf) >= 0)
+        msg_list->b_used = atoi(buf);
+
+    char c;
+    int read = 0;
+    while (!feof(f) && read < msg_list->b_used) {
+        c = getc(f);
+        if (c == '\n')
+            msg_list->buf[read++] = 0;
+        else
+            msg_list->buf[read++] = c;
+    }
+    DEBUG("%d/%d bytes read", read, msg_list->b_used);
+    fclose(f);
+}
+
+void msg_list_write(msg_list_t *msg_list, char *filename) {
+    if (!msg_list->enabled) {
+        ERROR("Can't write log file, because msg_list diabled");
+        return;
+    }
+    FILE *f = fopen(filename, "w");
+    fprintf(f, "max: %d\n", msg_list->b_max);
+    fprintf(f, "used: %d\n", msg_list->b_used);
+    for (int i = 0; i < msg_list->b_used; i++) {
+        if (msg_list->buf[i] == 0)
+            fputc('\n', f);
+        else
+            fputc(msg_list->buf[i], f);
+    }
+    fclose(f);
+}

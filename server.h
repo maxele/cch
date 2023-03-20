@@ -7,6 +7,6 @@
 #include "./msg_list.h"
 #include "./client_list.h"
 
-int server(int port);
+int server(int port, char *filename);
 
 #endif // __SERVER_H__

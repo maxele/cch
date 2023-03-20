@@ -30,6 +30,7 @@
 #define P_USER_CONNECT 3
 #define P_MSG_LIST 4
 #define P_SERVER_END 5
+#define P_USER_RENAME 6
 
 #define INFO(f_, ...) printf(("\033[3;32m[INFO] "f_"\n\033[0m"), ##__VA_ARGS__)
 #define ERROR(f_, ...) printf(("\033[3;31m[ERROR] "f_"\n\033[0m"), ##__VA_ARGS__)

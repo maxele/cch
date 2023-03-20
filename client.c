@@ -9,7 +9,7 @@ void client_help() {
     printf("  /prevmsg or /pr  get previous messages\n");
     printf("  /clear or /clr   clear the screen\n");
     printf("  /quit or /q      clear the screen\n");
-    // printf("  /rn           rename yourself\n");
+    printf("  /rn <name>       rename yourself\n");
 }
 
 void recv_users(int clifd) {
@@ -31,6 +31,23 @@ void recv_users(int clifd) {
     }
     printf("\n");
     free(buf);
+}
+bool check_user_rename(char *buf) {
+    if (strlen(buf) < 7 || strlen(buf) >= MAX_USERNAME_LEN+4) return false;
+    if (buf[0] != '/' || buf[1] != 'r' || buf[2] != 'n') return false;
+    return true;
+}
+
+void send_user_rename(me_t *me) {
+    me->buf += 4;
+    strcpy(me->username, me->buf);
+    write(me->clifd, me->buf, strlen(me->buf));
+}
+
+void recv_user_rename(int clifd) {
+    char buf[MAX_USERNAME_LEN*2+2];
+    int status = read(clifd, buf, MAX_USERNAME_LEN*2+2);
+    printf("'%s' got renamed to '%s'\n", buf, buf+strlen(buf));
 }
 
 void recv_disconnected(int clifd) {
@@ -122,7 +139,7 @@ void recv_msg_list(int clifd) {
 }
 
 void *send_loop(void *arg) {
-    struct me_t me = *(struct me_t *)arg;
+    // struct me_t me = *(struct me_t *)arg;
     // char buf[MAX_BUF_LEN];
 
     DEBUG("Getting previously sent messages");
@@ -160,6 +177,8 @@ void *send_loop(void *arg) {
             id = P_USER_LIST;
         } else if (strcmp("/prevmsg", me.buf) == 0 || strcmp("/pr", me.buf) == 0) {
             id = P_MSG_LIST;
+        } else if (check_user_rename(me.buf)) {
+            id = P_USER_RENAME;
         } else if (strcmp("/clear", me.buf) == 0 || strcmp("/clr", me.buf) == 0) {
             printf("\033[2J\033[H");
             continue;
@@ -174,21 +193,25 @@ void *send_loop(void *arg) {
         if (status < 0) return 0;
 
         switch (id) {
-            case P_MSG:
-                printf("\033[F\033[2K\r"); // go up one line and clear it
-                printf("ME: %s\n", me.buf);
-                DEBUG("(%lu) Sending: %s", strlen(me.buf), me.buf);
-                status = send(me.clifd, me.buf, strlen(me.buf), 0);
-                break;
-            case P_USER_LIST:
-                DEBUG("Recieving users");
-                break;
-            case P_MSG_LIST:
-                DEBUG("Recieving previous messages");
-                break;
-            default:
-                INFO("Invalid id");
-                break;
+        case P_MSG:
+            printf("\033[F\033[2K\r"); // go up one line and clear it
+            printf("ME: %s\n", me.buf);
+            DEBUG("(%lu) Sending: %s", strlen(me.buf), me.buf);
+            status = send(me.clifd, me.buf, strlen(me.buf), 0);
+            break;
+        // case P_USER_LIST:
+        //     DEBUG("Recieving users");
+        //     break;
+        // case P_MSG_LIST:
+        //     DEBUG("Recieving previous messages");
+        //     break;
+        case P_USER_RENAME:
+            // DEBUG("sending rename");
+            send_user_rename(&me);
+            break;
+        default:
+            DEBUG("not catched %d", id);
+            break;
         }
     }
     return 0;
@@ -249,25 +272,29 @@ int client(char username[MAX_USERNAME_LEN], int port, char *host) {
                 printf("(%s): %s\n", username_buf, msg_buf);
                 break;
             case P_USER_LIST:
-                DEBUG("Recieving users (main)");
+                DEBUG("P_USER_LIST");
                 recv_users(clifd);
                 break;
             case P_USER_DISCONNECT:
-                DEBUG("Client disconnected");
+                DEBUG("P_USER_DISCONNECT");
                 recv_disconnected(me.clifd);
                 break;
             case P_USER_CONNECT:
-                DEBUG("Client connected");
+                DEBUG("P_USER_CONNECT");
                 recv_connected(me.clifd);
                 break;
             case P_MSG_LIST:
-                DEBUG("Recieving previous messages");
+                DEBUG("P_MSG_LIST");
                 recv_msg_list(me.clifd);
                 break;
             case P_SERVER_END:
                 printf("\n");
-                INFO("Server closed");
+                INFO("P_SERVER_END");
                 exit(0);
+                break;
+            case P_USER_RENAME:
+                INFO("P_USER_RENAME");
+                recv_user_rename(me.clifd);
                 break;
             default:
                 INFO("Unknown msg type: %d", type);

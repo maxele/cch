@@ -8,7 +8,14 @@
 
 void help(char *filename) {
     printf("Client usage: %s <username> [-p <port>] [-h <hostname>]\n", filename);
-    printf("Client usage: %s -s [-p <port>] [-h <hostname>]\n", filename);
+    printf("Server usage: %s -s [-f <filename>][-p <port>] [-h <hostname>]\n", filename);
+    printf("\n");
+    printf("     <username>     The username which should be used (max %d)\n", MAX_USERNAME_LEN);
+    printf("     -s             Enables server mode\n");
+    printf("     -f <filename>  If given, all messages will be stored up into <filename>\n");
+    printf("                    and they will also be restored next time\n");
+    printf("     -p <port>      The port to which to connect to\n");
+    printf("     -h <hostname>  The host to which to connect to\n");
     exit(0);
 }
 
@@ -28,6 +35,7 @@ int main(int argc, char *argv[]) {
     bool isserver = false;
 
     char *username = 0;
+    char *filename = 0;
     char *hostname = 0;
     char *port = 0;
 
@@ -49,6 +57,15 @@ int main(int argc, char *argv[]) {
                 hostname = argv[i+1];
             } else {
                 ERROR("No hostname given");
+                return 1;
+            }
+            i++;
+        } else if (strcmp(argv[i], "-f") == 0) {
+            if (i+1 < argc && argv[i+1][0] != '-') {
+                // DEBUG("Port: %s", argv[i+1]);
+                filename = argv[i+1];
+            } else {
+                ERROR("No filename given");
                 return 1;
             }
             i++;
@@ -85,6 +102,7 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
+    DEBUG("Filename: %s", filename);
     DEBUG("Hostname: %s", hostname);
     char ip[16];
     hostnametoip(hostname, ip);
@@ -93,8 +111,8 @@ int main(int argc, char *argv[]) {
     DEBUG("isserver: %d", isserver);
 
     if (isserver) {
-        DEBUG("Calling 'server(%d)'", portnum);
-        server(portnum);
+        DEBUG("Calling 'server(%d, %s)'", portnum, filename);
+        server(portnum, filename);
     } else {
         DEBUG("Calling 'client(%s, %d, %s)'", username, portnum, ip);
         client(username, portnum, ip);
