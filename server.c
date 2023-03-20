@@ -131,11 +131,11 @@ int handleclient(int clifd) {
     return 0;
 }
 
-int init_socket(struct sockaddr_in *addr) {
+int init_socket(struct sockaddr_in *addr, int port) {
     int servfd = socket(AF_INET, SOCK_STREAM, 0);
 
     addr->sin_family = AF_INET;
-    addr->sin_port = htons(PORT);
+    addr->sin_port = htons(port);
     addr->sin_addr.s_addr = INADDR_ANY;
 
     int opt = 1;
@@ -159,7 +159,7 @@ int init_socket(struct sockaddr_in *addr) {
     return servfd;
 }
 
-int server() {
+int server(int port) {
     sigaction(SIGPIPE, &(struct sigaction){SIG_IGN}, NULL);
     signal(SIGINT, sigInt);
 
@@ -168,7 +168,7 @@ int server() {
 
     struct sockaddr_in addr;
     INFO("Initialized server socket");
-    int servfd = init_socket(&addr);
+    int servfd = init_socket(&addr, port);
      
     int clifd;
     int addrlen = sizeof(addr);

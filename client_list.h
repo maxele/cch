@@ -1,7 +1,7 @@
 #ifndef __CLIENT_LIST_H__
 #define __CLIENT_LIST_H__
 
-#include "options.h"
+#include "cch.h"
 
 typedef struct client_list_t {
     int max_cap;

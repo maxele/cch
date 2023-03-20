@@ -10,8 +10,8 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-#ifndef __OPTIONS_H__
-#define __OPTIONS_H__
+#ifndef __CCH_H__
+#define __CCH_H__
 
 #define PORT 25555
 #define HOST "127.0.0.1"
@@ -47,4 +47,4 @@ typedef struct client_t {
     char *username;
 } client_t;
 
-#endif // __OPTIONS_H__
+#endif // __CCH_H__

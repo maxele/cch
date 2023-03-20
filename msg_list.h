@@ -1,7 +1,7 @@
 #ifndef __MSG_LIST_H__
 #define __MSG_LIST_H__
 
-#include "options.h"
+#include "cch.h"
 
 typedef struct msg_list_t {
     bool enabled;

@@ -3,10 +3,10 @@
 
 #include <signal.h>
 
-#include "options.h"
+#include "cch.h"
 #include "./msg_list.h"
 #include "./client_list.h"
 
-int server();
+int server(int port);
 
 #endif // __SERVER_H__

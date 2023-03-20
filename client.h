@@ -1,7 +1,7 @@
 #ifndef __CLIENT_H__
 #define __CLIENT_H__
 
-#include "options.h"
+#include "cch.h"
 
 typedef struct me_t {
     int clifd;
@@ -9,6 +9,6 @@ typedef struct me_t {
     char *username;
 } me_t;
 
-int client(char username[MAX_USERNAME_LEN]);
+int client(char username[MAX_USERNAME_LEN], int port, char *host);
 
 #endif // __CLIENT_H__

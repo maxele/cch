@@ -2,7 +2,7 @@
 
 me_t me;
 
-void help() {
+void client_help() {
     printf("HELP:\n");
     printf("  /help or /h      print this message\n");
     printf("  /list or /l      get list of users\n");
@@ -152,7 +152,7 @@ void *send_loop(void *arg) {
 
         char id = P_MSG;
         if (strcmp("/help", me.buf) == 0 || strcmp("/h", me.buf) == 0) {
-            help();
+            client_help();
             continue;
         } else if (strcmp("/list", me.buf) == 0 || strcmp("/l", me.buf) == 0) {
             id = P_USER_LIST;
@@ -187,7 +187,7 @@ void *send_loop(void *arg) {
     return 0;
 }
 
-int client(char username[MAX_USERNAME_LEN]) {
+int client(char username[MAX_USERNAME_LEN], int port, char *host) {
     INFO("Creating client socket");
     int clifd = socket(AF_INET, SOCK_STREAM, 0);
     if (clifd < 0) {
@@ -197,8 +197,8 @@ int client(char username[MAX_USERNAME_LEN]) {
 
     struct sockaddr_in addr;
     addr.sin_family = AF_INET;
-    addr.sin_port = htons(PORT);
-    if (inet_pton(AF_INET, HOST, &addr.sin_addr) <= 0) {
+    addr.sin_port = htons(port);
+    if (inet_pton(AF_INET, host, &addr.sin_addr) <= 0) {
         ERROR("Can't convert host.");
         return 0;
     }

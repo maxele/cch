@@ -33,9 +33,10 @@ int client_list_add(client_list_t *client_list, int clifd, char username[MAX_USE
     int status;
     char type = P_USER_CONNECT;
     for (int i = 0; i < client_list->nr_clients; i++) {
+        if (client_list->clients[i].clifd == clifd) continue; // dont send to newly connected client
         DEBUG("Sending connect of '%s' to '%s'", username, client_list->clients[i].username);
         status = write(client_list->clients[i].clifd, &type, 1);
-        if (status < 0) break;
+        if (status < 0) continue;
         status = write(client_list->clients[i].clifd, username, strlen(username)+1);
     }
 
