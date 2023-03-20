@@ -46,7 +46,7 @@ void sharemsg(client_t client) {
 
     int status = read(client.clifd, msg_buf, MAX_BUF_LEN);
     if (strlen(msg_buf) <= 0) return;
-    msg_list_add(&msg_list, client.username, msg_buf);
+    msg_list_add(&msg_list, client.username, msg_buf, msg_list_file);
 
     char type = 0;
     if (status < 0) return;
@@ -96,7 +96,7 @@ void *listenclient(void *arg) {
 
     INFO("Client '%s' with fd %d disconnected.", client.username, client.clifd);
     client_list_del(&client_list, client.clifd);
-    msg_list_add(&msg_list, "D", client.username);
+    msg_list_add(&msg_list, "D", client.username, msg_list_file);
 
     pthread_exit(0);
 }
@@ -123,7 +123,8 @@ int handleclient(int clifd) {
     DEBUG("checking if username '%s' is taken:", usernamebuf);
     bool istaken = false;
     for (int i = 0; i < client_list.nr_clients && !istaken; i++) {
-        DEBUG("comparing '%s' : '%s'", usernamebuf, client_list.clients[i].username);
+        DEBUG("comparing '%s' : '%s'", usernamebuf, 
+                client_list.clients[i].username);
         istaken = strcmp(usernamebuf, client_list.clients[i].username) == 0;
     }
 
@@ -131,7 +132,8 @@ int handleclient(int clifd) {
         int i = client_list_add(&client_list, clifd, usernamebuf);
         pthread_create(&client_list.clients[i].thread_id,
                 NULL, listenclient, &client_list.clients[i]);
-        msg_list_add(&msg_list, "C", client_list.clients[i].username);
+        msg_list_add(&msg_list, "C", client_list.clients[i].username, 
+                msg_list_file);
     } else {
         DEBUG("username '%s' is taken", usernamebuf);
         close(clifd);

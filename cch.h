@@ -23,6 +23,7 @@
 
 #define MSG_LIST_MAX 128 // nr messages (not used atm)
 #define MSG_LIST_INCREMENT 512 // bytes
+#define MSG_LIST_BACKUP_NR 16 // how many messages inbetween backups
 
 #define P_MSG 0
 #define P_USER_LIST 1

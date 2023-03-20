@@ -1,6 +1,8 @@
 #include "msg_list.h"
 #include <stdio.h>
 
+int total_msg = 0;
+
 void msg_list_init(msg_list_t *msg_list) {
     msg_list->enabled = true;
     msg_list->nr = 0;
@@ -10,7 +12,7 @@ void msg_list_init(msg_list_t *msg_list) {
 }
 
 // TODO: Fix usernames not being freed
-void msg_list_add(msg_list_t *msg_list, char *username, char *msg_buf) {
+void msg_list_add(msg_list_t *msg_list, char *username, char *msg_buf, char *filename) {
     if (!msg_list->enabled) {
         DEBUG("msg_list_t not enabled");
         return;
@@ -49,6 +51,10 @@ void msg_list_add(msg_list_t *msg_list, char *username, char *msg_buf) {
     msg_list->nr++;
 
     free(buf);
+
+    if (filename != 0 && total_msg % MSG_LIST_BACKUP_NR == 0)
+        msg_list_write(msg_list, filename);
+    total_msg++;
 }
 
 void msg_list_send(msg_list_t *msg_list, client_t client) {
