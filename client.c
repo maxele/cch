@@ -7,6 +7,8 @@ void client_help() {
     printf("  /help or /h      print this message\n");
     printf("  /list or /l      get list of users\n");
     printf("  /prevmsg or /pr  get previous messages\n");
+    printf("  /clear or /clr   clear the screen\n");
+    printf("  /quit or /q      clear the screen\n");
     // printf("  /rn           rename yourself\n");
 }
 
@@ -158,6 +160,11 @@ void *send_loop(void *arg) {
             id = P_USER_LIST;
         } else if (strcmp("/prevmsg", me.buf) == 0 || strcmp("/pr", me.buf) == 0) {
             id = P_MSG_LIST;
+        } else if (strcmp("/clear", me.buf) == 0 || strcmp("/clr", me.buf) == 0) {
+            printf("\033[2J\033[H");
+            continue;
+        } else if (strcmp("/quit", me.buf) == 0 || strcmp("/q", me.buf) == 0) {
+            exit(0);
         } else if (me.buf[0] == '/') {
             printf("Type /help for help\n");
             continue;
