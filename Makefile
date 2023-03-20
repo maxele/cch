@@ -1,13 +1,13 @@
 BUILD := ./build/
 
 help:
-	@echo shutup
+	@echo select what to build
 
 $(BUILD)%.c.o: %.c
 	mkdir -p $(dir $@)
 	gcc -c -o $@ $<
 
-S_SRC := server.c client_list.c
+S_SRC := server.c client_list.c msg_list.c
 S_OBJ := $(S_SRC:%.c=$(BUILD)%.c.o)
 C_SRC := client.c
 C_OBJ := $(C_SRC:%.c=$(BUILD)%.c.o)
