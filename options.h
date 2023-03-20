@@ -17,22 +17,24 @@
 #define HOST "127.0.0.1"
 
 #define MAX_USERNAME_LEN 128
-#define MAX_BUF_LEN 2048
-#define MSG_LIST_MAX 128
+#define MAX_BUF_LEN 1028
 
 #define CLIENT_BUF_INCREMENT 8
-#define MSG_LIST_INCREMENT 16
+
+#define MSG_LIST_MAX 128 // nr messages (not used atm)
+#define MSG_LIST_INCREMENT 512 // bytes
 
 #define P_MSG 0
 #define P_USER_LIST 1
 #define P_USER_DISCONNECT 2
 #define P_USER_CONNECT 3
 #define P_MSG_LIST 4
+#define P_SERVER_END 5
 
 #define INFO(f_, ...) printf(("\033[3;32m[INFO] "f_"\n\033[0m"), ##__VA_ARGS__)
 #define ERROR(f_, ...) printf(("\033[3;31m[ERROR] "f_"\n\033[0m"), ##__VA_ARGS__)
 
-#define __DEBUG__
+// #define __DEBUG__
 #ifdef __DEBUG__
 #define DEBUG(f_, ...) printf(("\033[3;34m[DEBUG] "f_"\n\033[0m"), ##__VA_ARGS__)
 #else
