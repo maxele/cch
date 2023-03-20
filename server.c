@@ -1,8 +1,4 @@
-#include "./options.h"
-#include "./client_list.h"
-#include "./msg_list.h"
-#include <signal.h>
-#include <stdio.h>
+#include "server.h"
 
 client_list_t client_list;
 msg_list_t msg_list;
@@ -163,7 +159,7 @@ int init_socket(struct sockaddr_in *addr) {
     return servfd;
 }
 
-int main() {
+int server() {
     sigaction(SIGPIPE, &(struct sigaction){SIG_IGN}, NULL);
     signal(SIGINT, sigInt);
 
