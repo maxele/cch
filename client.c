@@ -123,7 +123,7 @@ void *send_loop(void *arg) {
     struct me_t me = *(struct me_t *)arg;
     // char buf[MAX_BUF_LEN];
 
-    INFO("Getting previously sent messages");
+    DEBUG("Getting previously sent messages");
     {
         char id = P_MSG_LIST;
         int status = write(me.clifd, &id, 1);
@@ -209,7 +209,7 @@ int client(char username[MAX_USERNAME_LEN], int port, char *host) {
         return 0;
     }
     
-    INFO("Sending username (%lu) '%s'", strlen(username), username);
+    DEBUG("Sending username (%lu) '%s'", strlen(username), username);
     int status = send(clifd, username, strlen(username)+1, 0);
     if (status < 0) {
         ERROR("Couldn't send username!");
