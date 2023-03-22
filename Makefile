@@ -1,6 +1,9 @@
 BUILD := ./build/
 
-# DEBUG := -D__DEBUG__
+DEBUG := -D__DEBUG__
+# QUIET := -D__QUIET__
+
+FLAGS := $(QUIET) $(DEBUG)
 
 C_SRC := $(wildcard *.c)
 C_OBJ := $(C_SRC:%.c=$(BUILD)%.c.o)
@@ -11,7 +14,7 @@ $(BUILD)cch: $(C_OBJ)
 
 $(BUILD)%.c.o: %.c
 	mkdir -p $(dir $@)
-	gcc -c -o $@ $< $(DEBUG)
+	gcc -c -o $@ $< $(FLAGS)
 
 run_server: clear $(BUILD)cch
 	$(BUILD)cch -s
