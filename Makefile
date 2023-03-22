@@ -1,6 +1,6 @@
 BUILD := ./build/
 
-DEBUG := -D__DEBUG__
+# DEBUG := -D__DEBUG__
 
 C_SRC := $(wildcard *.c)
 C_OBJ := $(C_SRC:%.c=$(BUILD)%.c.o)
@@ -17,6 +17,9 @@ run_server: clear $(BUILD)cch
 	$(BUILD)cch -s
 run_client: clear $(BUILD)cch
 	sleep 0.1
+	$(BUILD)cch user1
+
+run: clear $(BUILD)cch
 	$(BUILD)cch user1
 
 .PHONY: clear clean
