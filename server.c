@@ -53,7 +53,9 @@ void sharemsg(client_t client) {
     // sprintf(total_buf, "(%s): %s", client.username, msg_buf);
     if (status < 0) return;
 
+#ifndef __QUIET__
     printf("(%s): %s\n", client.username, msg_buf);
+#endif
     for (int i = 0; i < client_list.nr_clients; i++) {
         if (client_list.clients[i].clifd != client.clifd) {
             status = write(client_list.clients[i].clifd, &type, 1);
