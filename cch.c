@@ -92,6 +92,7 @@ int main(int argc, char *argv[]) {
         DEBUG("Username: %s", username);
     } else if (!isserver) {
         ERROR("Username not given but is client");
+        INFO("Use --help for help");
         return 0;
     }
     if (hostname == 0) hostname = "localhost";

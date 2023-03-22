@@ -145,6 +145,10 @@ int handleclient(int clifd) {
 
 int init_socket(struct sockaddr_in *addr, int port) {
     int servfd = socket(AF_INET, SOCK_STREAM, 0);
+    if (servfd < 0) {
+        ERROR("Couldn't create server socket!");
+        return -1;
+    }
 
     addr->sin_family = AF_INET;
     addr->sin_port = htons(port);
@@ -153,7 +157,7 @@ int init_socket(struct sockaddr_in *addr, int port) {
     int opt = 1;
     if (setsockopt(servfd, SOL_SOCKET,
                 SO_REUSEADDR | SO_REUSEPORT, &opt,
-                sizeof(opt))) {
+                sizeof(opt)) < 0) {
         ERROR("can't set setsockopt");
         return -1;
     }
@@ -186,6 +190,7 @@ int server(int port, char *filename) {
     struct sockaddr_in addr;
     INFO("Initialized server socket");
     int servfd = init_socket(&addr, port);
+    if (servfd < 0) return -1;
      
     int clifd;
     int addrlen = sizeof(addr);
