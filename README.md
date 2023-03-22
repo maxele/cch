@@ -78,12 +78,8 @@ ausgeben, aber hier ist trotzdem die liste nochmals mit erklährungen.
     | u8[128]         |  |
 
 - P_USER_DISCONNECT (2)
-    | type            | description      |
-    |-----------------|------------------|
-    | u8              | id P_MSG (0)     |
-    | u8[128]         |  |
 
-P_USER_CONNECT 3
-P_MSG_LIST 4
-P_SERVER_END 5
-P_USER_RENAME 6
+- P_USER_CONNECT (3)
+- P_MSG_LIST (4)
+- P_SERVER_END (5)
+- P_USER_RENAME (6)
