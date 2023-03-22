@@ -1,6 +1,33 @@
 #include "client.h"
+#include <fcntl.h>
+#include <signal.h>
+#include <unistd.h>
+#include <termios.h>
 
 me_t me;
+static struct termios oldt;
+
+int getch() {
+    char c = 0;
+    while ((c = getchar()) <= 0) {}
+    // DEBUG("%3d %c\n", c, c);
+    return c;
+}
+
+// stdin won't wait anymore until a newline (enter)
+void getch_init() {
+    static struct termios newt;
+
+    tcgetattr(STDIN_FILENO, &oldt);
+    newt = oldt;
+    newt.c_lflag &= ~(ICANON);
+    tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+}
+
+void c_sigInt(int s) {
+    tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+    exit(0);
+}
 
 void client_help() {
     printf(""CBW"HELP:"CCLR"\n");
@@ -173,12 +200,17 @@ void *send_loop(void *arg) {
         pos = 0;
 
         while (pos < MAX_BUF_LEN) {
-            me.buf[pos] = getc(stdin);
+            me.buf[pos] = getch();
             me.buf[pos+1] = 0;
             if (pos > 0 && me.buf[pos] == '\n'){
                 break;
             } else if (me.buf[pos] == '\n') {
                 printf(" "CBC"%s"CCLR" > ", me.username);
+            } else if (me.buf[pos] == 127) { // Backspace
+                me.buf[pos] = 0;
+                me.buf[--pos] = 0;
+                printf("\r "CBC"%s"CCLR" > %s   ", me.username, me.buf);
+                printf("\r "CBC"%s"CCLR" > %s", me.username, me.buf);
             } else {
                 pos++;
             }
@@ -234,6 +266,13 @@ void *send_loop(void *arg) {
 }
 
 int client(char username[MAX_USERNAME_LEN], int port, char *host) {
+    getch_init();
+    signal(SIGINT, c_sigInt);
+    fcntl(0, F_SETFL, O_NONBLOCK); /* 0 is the stdin file decriptor */
+
+    // printf("%d", getch());
+    // exit(0);
+
     INFO("Creating client socket");
     int clifd = socket(AF_INET, SOCK_STREAM, 0);
     if (clifd < 0) {
@@ -317,7 +356,7 @@ int client(char username[MAX_USERNAME_LEN], int port, char *host) {
         }
         if (status < 0) break;
         DEBUG("BUF: '%s'", me.buf);
-        printf(" "CBC"%s"CCLR" > ", username);
+        printf(" "CBC"%s"CCLR" > %s", username, buf);
         fflush(stdout);
     }
 
