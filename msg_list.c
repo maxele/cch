@@ -40,6 +40,16 @@ void msg_list_add(msg_list_t *msg_list, char *username, char *msg_buf, char *fil
         free(buf);
     }
     buf = malloc(buflen);
+    // if (username[0] == 'R' && username[1] == 0) {
+    //     memcpy(buf, username, strlen(username)+1);
+    //     int o = strlen(username)+1;
+    //     memcpy(buf+o, msg_buf, strlen(msg_buf)+1);
+    //     o+=strlen(msg_buf+o)+1;
+    //     memcpy(buf+o, msg_buf, strlen(msg_buf+o)+1);
+    //
+    //     INFO("%s %s %s", username, msg_buf, msg_buf+strlen(msg_buf)+1);
+    // } else {
+    // }
     memcpy(buf, username, strlen(username)+1);
     memcpy(buf+strlen(username)+1, msg_buf, strlen(msg_buf)+1);
 

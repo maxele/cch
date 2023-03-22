@@ -1,4 +1,5 @@
 #include "client_list.h"
+#include "msg_list.h"
 #include <sys/socket.h>
 
 void client_list_init(client_list_t *client_list) {
@@ -113,7 +114,7 @@ void client_list_send(client_list_t *client_list, client_t client) {
     DEBUG("Done sending");
 }
 
-void client_list_rename(client_list_t *client_list, int clifd) {
+void client_list_rename(client_list_t *client_list, msg_list_t *msg_list, int clifd) {
     int index = -1;
     for (int i = 0; i < client_list->nr_clients; i++) {
         if (client_list->clients[i].clifd == clifd) {
@@ -124,20 +125,26 @@ void client_list_rename(client_list_t *client_list, int clifd) {
     if (index < 0) return;
 
     char buf[MAX_USERNAME_LEN*2+2];
-    memcpy(buf, client_list->clients[index].username, MAX_USERNAME_LEN);
+    memcpy(buf, client_list->clients[index].username, 
+            strlen(client_list->clients[index].username)+1);
+    memset(client_list->clients[index].username, 0, MAX_USERNAME_LEN);
     int status = read(clifd, client_list->clients[index].username, 
             MAX_USERNAME_LEN);
 
-    DEBUG("Renaming %s to %s", buf, client_list->clients[index].username);
+    INFO("Renaming '%s' to '%s'", buf, client_list->clients[index].username);
     char id = P_USER_RENAME;
-    int buflen = strlen(buf)+strlen(client_list->clients[index].username)+2;
-    memcpy(buf+strlen(buf)+1, client_list->clients[index].username, 
+    memcpy(buf+strlen(buf)+1, client_list->clients[index].username,
             strlen(client_list->clients[index].username)+1);
 
+    int buflen = strlen(buf)+strlen(client_list->clients[index].username)+2;
+
     for (int i = 0; i < client_list->nr_clients; i++) {
-        if (client_list->clients[i].clifd == clifd) break;
-        status = write(clifd, &id, 1);
+        // if (client_list->clients[i].clifd == clifd) break;
+        status = write(client_list->clients[i].clifd, &id, 1);
         if (status < 0) continue;
-        status = write(clifd, &buf, buflen);
+        status = write(client_list->clients[i].clifd, &buf, buflen);
     }
+
+    buf[strlen(buf)] = 1;
+    msg_list_add(msg_list, "R", buf, (void *)0);
 }

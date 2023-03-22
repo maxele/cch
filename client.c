@@ -3,13 +3,13 @@
 me_t me;
 
 void client_help() {
-    printf("HELP:\n");
-    printf("  /help or /h      print this message\n");
-    printf("  /list or /l      get list of users\n");
-    printf("  /prevmsg or /pr  get previous messages\n");
-    printf("  /clear or /clr   clear the screen\n");
-    printf("  /quit or /q      clear the screen\n");
-    printf("  /rn <name>       rename yourself\n");
+    printf(CBW"HELP:"CCLR"\n");
+    printf(CBW"  /help or /h      print this message"CCLR"\n");
+    printf(CBW"  /list or /l      get list of users"CCLR"\n");
+    printf(CBW"  /prevmsg or /pr  get previous messages"CCLR"\n");
+    printf(CBW"  /clear or /clr   clear the screen"CCLR"\n");
+    printf(CBW"  /quit or /q      clear the screen"CCLR"\n");
+    printf(CBW"  /rn <name>       rename yourself (min 3 char)"CCLR"\n");
 }
 
 void recv_users(int clifd) {
@@ -47,7 +47,8 @@ void send_user_rename(me_t *me) {
 void recv_user_rename(int clifd) {
     char buf[MAX_USERNAME_LEN*2+2];
     int status = read(clifd, buf, MAX_USERNAME_LEN*2+2);
-    printf("'%s' got renamed to '%s'\n", buf, buf+strlen(buf));
+    printf("\033[2K\r"); // go up one line and clear it
+    printf("'%s' got renamed to '%s'\n", buf, buf+strlen(buf)+1);
 }
 
 void recv_disconnected(int clifd) {
@@ -124,6 +125,19 @@ void recv_msg_list(int clifd) {
         } else if (*(buf+bp) == 'D' && *(buf+bp+1) == 0) {
             printf(CNR"User "CBW"'%s'"CNR" disconnected"CCLR"\n", buf+bp+mo);
             // printf("User '%s' disconnected\n", buf+bp+mo);
+        } else if (*(buf+bp) == 'R' && *(buf+bp+1) == 0) {
+            printf(CBW"'");
+            int i = 0;
+            while (*(buf+bp+mo+i) != 0) {
+                if (*(buf+bp+mo+i) == 1) {
+                    printf(CCLR"' was renamed to '"CBW);
+                } else {
+                    putc(*(buf+bp+mo+i), stdout);
+                }
+                i++;
+            }
+            // printf("User '%s' disconnected\n", buf+bp+mo);
+            printf("'"CCLR"\n");
         } else {
             printf(CBW"(%s)"CCLR": %s\n", buf+bp, buf+bp+mo);
         }
@@ -291,11 +305,11 @@ int client(char username[MAX_USERNAME_LEN], int port, char *host) {
                 break;
             case P_SERVER_END:
                 printf("\n");
-                INFO("P_SERVER_END");
+                DEBUG("P_SERVER_END");
                 exit(0);
                 break;
             case P_USER_RENAME:
-                INFO("P_USER_RENAME");
+                DEBUG("P_USER_RENAME");
                 recv_user_rename(me.clifd);
                 break;
             default:

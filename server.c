@@ -86,7 +86,7 @@ void *listenclient(void *arg) {
             msg_list_send(&msg_list, client);
             break;
         case P_USER_RENAME:
-            client_list_rename(&client_list, client.clifd);
+            client_list_rename(&client_list, &msg_list, client.clifd);
             break;
         default:
             INFO("Unknown id %d from '%s'", id, client.username);
