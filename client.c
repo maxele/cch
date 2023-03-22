@@ -3,13 +3,13 @@
 me_t me;
 
 void client_help() {
-    printf(CBW"HELP:"CCLR"\n");
-    printf(CBW"  /help or /h      print this message"CCLR"\n");
-    printf(CBW"  /list or /l      get list of users"CCLR"\n");
-    printf(CBW"  /prevmsg or /pr  get previous messages"CCLR"\n");
-    printf(CBW"  /clear or /clr   clear the screen"CCLR"\n");
-    printf(CBW"  /quit or /q      clear the screen"CCLR"\n");
-    printf(CBW"  /rn <name>       rename yourself (min 3 char)"CCLR"\n");
+    printf(""CBW"HELP:"CCLR"\n");
+    printf(""CBW"  /help or /h      print this message"CCLR"\n");
+    printf(""CBW"  /list or /l      get list of users"CCLR"\n");
+    printf(""CBW"  /prevmsg or /pr  get previous messages"CCLR"\n");
+    printf(""CBW"  /clear or /clr   clear the screen"CCLR"\n");
+    printf(""CBW"  /quit or /q      closes the connection"CCLR"\n");
+    printf(""CBW"  /rn <name>       rename yourself (min 3 char)"CCLR"\n");
 }
 
 void recv_users(int clifd) {
