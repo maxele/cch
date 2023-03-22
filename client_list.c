@@ -76,7 +76,7 @@ void client_list_del(client_list_t *client_list, int clifd) {
         DEBUG("Sending disconnect of '%s' to '%s'", username, client_list->clients[i].username);
         status = write(client_list->clients[i].clifd, &type, 1);
         if (status < 0) break;
-        status = write(client_list->clients[i].clifd, username, strlen(username));
+        status = write(client_list->clients[i].clifd, username, strlen(username)+1);
     }
 }
 

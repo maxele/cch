@@ -7,15 +7,15 @@
 #include <string.h>
 
 void help(char *filename) {
-    printf("Client usage: %s <username> [-p <port>] [-h <hostname>]\n", filename);
-    printf("Server usage: %s -s [-f <filename>][-p <port>] [-h <hostname>]\n", filename);
+    printf(CBW"CLIENT: "CBC"%s"CCLR" <username> [-p <port>] [-h <hostname>]\n", filename);
+    printf(CBW"SERVER: "CBC"%s"CCLR" -s [-f <filename>][-p <port>] [-h <hostname>]\n", filename);
     printf("\n");
-    printf("     <username>     The username which should be used (max %d)\n", MAX_USERNAME_LEN);
-    printf("     -s             Enables server mode\n");
-    printf("     -f <filename>  If given, all messages will be stored up into <filename>\n");
+    printf("     "CBC"<username>"CCLR"     The username which should be used (max %d)\n", MAX_USERNAME_LEN);
+    printf("     "CBC"-s"CCLR"             Enables server mode\n");
+    printf("     "CBC"-f <filename>"CCLR"  If given, all messages will be stored up into <filename>\n");
     printf("                    and they will also be restored next time\n");
-    printf("     -p <port>      The port to which to connect to\n");
-    printf("     -h <hostname>  The host to which to connect to\n");
+    printf("     "CBC"-p <port>"CCLR"      The port to which to connect to\n");
+    printf("     "CBC"-h <hostname>"CCLR"  The host to which to connect to\n");
     exit(0);
 }
 

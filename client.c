@@ -55,7 +55,7 @@ void recv_disconnected(int clifd) {
     char username[MAX_USERNAME_LEN];
     status = read(clifd, username, MAX_USERNAME_LEN);
     printf("\033[2K\r"); // go up one line and clear it
-    printf("User '%s' disconnected\n", username);
+    printf(CNR"User "CBW"'%s'"CNR" disconnected"CCLR"\n", username);
 }
 
 void recv_connected(int clifd) {
@@ -63,7 +63,7 @@ void recv_connected(int clifd) {
     char username[MAX_USERNAME_LEN];
     status = read(clifd, username, MAX_USERNAME_LEN);
     printf("\033[2K\r"); // go up one line and clear it
-    printf("User '%s' connected\n", username);
+    printf(CNG"User "CBW"'%s'"CNG" connected"CCLR"\n", username);
 }
 
 void recv_msg_list(int clifd) {
@@ -104,7 +104,7 @@ void recv_msg_list(int clifd) {
         bp += mo + strlen(buf+bp+mo)+1;
     } else {
         printf("\033[2K\r"); // clear line
-        printf("    --- OLD MESSAGES ---    \n");
+        printf(CBC"    --- OLD MESSAGES ---    \n"CCLR);
     }
     while (bp < msg_list_size) {
         mo = strlen(buf+bp)+1;
@@ -119,11 +119,13 @@ void recv_msg_list(int clifd) {
         }
 
         if (*(buf+bp) == 'C' && *(buf+bp+1) == 0) {
-            printf("User '%s' connected\n", buf+bp+mo);
+            // printf("User '%s' connected\n", buf+bp+mo);
+            printf(CNG"User "CBW"'%s'"CNG" connected"CCLR"\n", buf+bp+mo);
         } else if (*(buf+bp) == 'D' && *(buf+bp+1) == 0) {
-            printf("User '%s' disconnected\n", buf+bp+mo);
+            printf(CNR"User "CBW"'%s'"CNR" disconnected"CCLR"\n", buf+bp+mo);
+            // printf("User '%s' disconnected\n", buf+bp+mo);
         } else {
-            printf("(%s): %s\n", buf+bp, buf+bp+mo);
+            printf(CBW"(%s)"CCLR": %s\n", buf+bp, buf+bp+mo);
         }
 
         nr ++;
@@ -131,7 +133,7 @@ void recv_msg_list(int clifd) {
     }
 
     if (nr > 0)
-        printf("--- RECIEVED %d MESSAGES ---\n", nr);
+        printf(CBC"--- RECIEVED %d MESSAGES ---\n"CCLR, nr);
     
     free(buf);
     // printf("\033[2K\r"); // go up one line and clear it
@@ -153,7 +155,7 @@ void *send_loop(void *arg) {
     while (status >= 0) {
         memset(me.buf, 0, MAX_BUF_LEN);
         printf("\033[2K\r"); // go up one line and clear it
-        printf("%s> ", me.username);
+        printf(" "CBC"%s"CCLR" > ", me.username);
         pos = 0;
 
         while (pos < MAX_BUF_LEN) {
@@ -162,7 +164,7 @@ void *send_loop(void *arg) {
             if (pos > 0 && me.buf[pos] == '\n'){
                 break;
             } else if (me.buf[pos] == '\n') {
-                printf("%s> ", me.username);
+                printf(" "CBC"%s"CCLR" > ", me.username);
             } else {
                 pos++;
             }
@@ -195,7 +197,7 @@ void *send_loop(void *arg) {
         switch (id) {
         case P_MSG:
             printf("\033[F\033[2K\r"); // go up one line and clear it
-            printf("ME: %s\n", me.buf);
+            printf(CBC"(%s)"CCLR": %s\n", me.username, me.buf);
             DEBUG("(%lu) Sending: %s", strlen(me.buf), me.buf);
             status = send(me.clifd, me.buf, strlen(me.buf), 0);
             break;
@@ -269,7 +271,7 @@ int client(char username[MAX_USERNAME_LEN], int port, char *host) {
                 memset(msg_buf, 0, MAX_BUF_LEN);
                 status = read(clifd, msg_buf, MAX_BUF_LEN);
                 printf("\n\033[F\033[2K\r"); // go up one line and clear it
-                printf("(%s): %s\n", username_buf, msg_buf);
+                printf(CBW"(%s)"CCLR": %s\n", username_buf, msg_buf);
                 break;
             case P_USER_LIST:
                 DEBUG("P_USER_LIST");
@@ -300,7 +302,8 @@ int client(char username[MAX_USERNAME_LEN], int port, char *host) {
                 INFO("Unknown msg type: %d", type);
         }
         if (status < 0) break;
-        printf("%s> ", username);
+        DEBUG("BUF: '%s'", me.buf);
+        printf(" "CBC"%s"CCLR" > ", username);
         fflush(stdout);
     }
 

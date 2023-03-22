@@ -33,12 +33,19 @@
 #define P_SERVER_END 5
 #define P_USER_RENAME 6
 
-#define INFO(f_, ...) printf(("\033[3;32m[INFO] "f_"\n\033[0m"), ##__VA_ARGS__)
-#define ERROR(f_, ...) printf(("\033[3;31m[ERROR] "f_"\n\033[0m"), ##__VA_ARGS__)
+#define CCLR "\033[0;0m"
+#define CBC "\033[1;37m"
+#define CBW "\033[1;39m"
+
+#define CNR "\033[0;31m"
+#define CNG "\033[0;32m"
+
+#define INFO(f_, ...) printf(("\033[3;32m[INFO] "f_"\033[0m\n"), ##__VA_ARGS__)
+#define ERROR(f_, ...) printf(("\033[3;31m[ERROR] "f_"\033[0m\n"), ##__VA_ARGS__)
 
 // #define __DEBUG__
 #ifdef __DEBUG__
-#define DEBUG(f_, ...) printf(("\033[3;34m[DEBUG] "f_"\n\033[0m"), ##__VA_ARGS__)
+#define DEBUG(f_, ...) printf(("\033[3;34m[DEBUG] "f_"\033[0m\n"), ##__VA_ARGS__)
 #else
 #define DEBUG(f_, ...)
 #endif
