@@ -207,8 +207,10 @@ void *send_loop(void *arg) {
             } else if (me.buf[pos] == '\n') {
                 printf(" "CBC"%s"CCLR" > ", me.username);
             } else if (me.buf[pos] == 127) { // Backspace
-                me.buf[pos] = 0;
-                me.buf[--pos] = 0;
+                if (pos > 0) {
+                    me.buf[pos] = 0;
+                    me.buf[--pos] = 0;
+                }
                 printf("\r "CBC"%s"CCLR" > %s   ", me.username, me.buf);
                 printf("\r "CBC"%s"CCLR" > %s", me.username, me.buf);
             } else {
