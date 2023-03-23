@@ -49,13 +49,15 @@ void recv_users(int clifd) {
     status = recv(clifd, buf, buf_size, 0);
     if (status < 0) return;
     printf("\033[F\033[2K\r"); // go up one line and clear it
-    printf("List of users: ");
+    printf("List of users: \n");
+    printf("\033[2K'");
     for (int i = 0; i < buf_size; i++) {
         if (buf[i] != 0)
             printf("%c", buf[i]);
         else
-            printf("; ");
+            printf("', '");
     }
+    printf("'");
     printf("\n");
     free(buf);
 }
@@ -66,9 +68,8 @@ bool check_user_rename(char *buf) {
 }
 
 void send_user_rename(me_t *me) {
-    me->buf += 4;
-    strcpy(me->username, me->buf);
-    write(me->clifd, me->buf, strlen(me->buf));
+    strcpy(me->username, me->buf+4);
+    write(me->clifd, me->buf+4, strlen(me->buf+4));
 }
 
 void recv_user_rename(int clifd) {
@@ -148,16 +149,16 @@ void recv_msg_list(int clifd) {
 
         if (*(buf+bp) == 'C' && *(buf+bp+1) == 0) {
             // printf("User '%s' connected\n", buf+bp+mo);
-            printf(CNG"User "CBW"'%s'"CNG" connected"CCLR"\n", buf+bp+mo);
+            printf(""CNG"User "CBW"'%s'"CNG" connected"CCLR"\n", buf+bp+mo);
         } else if (*(buf+bp) == 'D' && *(buf+bp+1) == 0) {
-            printf(CNR"User "CBW"'%s'"CNR" disconnected"CCLR"\n", buf+bp+mo);
+            printf(""CNR"User "CBW"'%s'"CNR" disconnected"CCLR"\n", buf+bp+mo);
             // printf("User '%s' disconnected\n", buf+bp+mo);
         } else if (*(buf+bp) == 'R' && *(buf+bp+1) == 0) {
             printf(CBW"'");
             int i = 0;
             while (*(buf+bp+mo+i) != 0) {
                 if (*(buf+bp+mo+i) == 1) {
-                    printf(CCLR"' was renamed to '"CBW);
+                    printf(""CCLR"' was renamed to '"CBW);
                 } else {
                     putc(*(buf+bp+mo+i), stdout);
                 }
@@ -166,7 +167,7 @@ void recv_msg_list(int clifd) {
             // printf("User '%s' disconnected\n", buf+bp+mo);
             printf("'"CCLR"\n");
         } else {
-            printf(CBW"(%s)"CCLR": %s\n", buf+bp, buf+bp+mo);
+            printf(""CBW"(%s)"CCLR": %s\n", buf+bp, buf+bp+mo);
         }
 
         nr ++;
@@ -205,12 +206,13 @@ void *send_loop(void *arg) {
             if (pos > 0 && me.buf[pos] == '\n'){
                 break;
             } else if (me.buf[pos] == '\n') {
-                printf(" "CBC"%s"CCLR" > ", me.username);
+                printf("\033[A "CBC"%s"CCLR" > ", me.username);
             } else if (me.buf[pos] == 127) { // Backspace
-                me.buf[pos] = 0;
-                me.buf[--pos] = 0;
-                printf("\r "CBC"%s"CCLR" > %s   ", me.username, me.buf);
-                printf("\r "CBC"%s"CCLR" > %s", me.username, me.buf);
+                if (pos > 0) {
+                    me.buf[pos] = 0;
+                    me.buf[--pos] = 0;
+                }
+                printf("\033[2K\r "CBC"%s"CCLR" > %s", me.username, me.buf);
             } else {
                 pos++;
             }
@@ -268,7 +270,6 @@ void *send_loop(void *arg) {
 int client(char username[MAX_USERNAME_LEN], int port, char *host) {
     getch_init();
     signal(SIGINT, c_sigInt);
-    fcntl(0, F_SETFL, O_NONBLOCK); /* 0 is the stdin file decriptor */
 
     // printf("%d", getch());
     // exit(0);
@@ -356,7 +357,7 @@ int client(char username[MAX_USERNAME_LEN], int port, char *host) {
         }
         if (status < 0) break;
         DEBUG("BUF: '%s'", me.buf);
-        printf(" "CBC"%s"CCLR" > %s", username, buf);
+        printf("\033[2K "CBC"%s"CCLR" > %s", username, buf);
         fflush(stdout);
     }
 
