@@ -212,7 +212,12 @@ void *send_loop(void *arg) {
                     me.buf[pos] = 0;
                     me.buf[--pos] = 0;
                 }
+<<<<<<< HEAD
                 printf("\033[2K\r "CBC"%s"CCLR" > %s", me.username, me.buf);
+=======
+                printf("\r "CBC"%s"CCLR" > %s   ", me.username, me.buf);
+                printf("\r "CBC"%s"CCLR" > %s", me.username, me.buf);
+>>>>>>> 98af15411667d3fed565897f3be2e36752c411ba
             } else {
                 pos++;
             }
