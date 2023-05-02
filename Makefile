@@ -1,7 +1,7 @@
 BUILD := ./build/
 
-DEBUG := -D__DEBUG__
-# QUIET := -D__QUIET__
+#DEBUG := -D__DEBUG__
+#QUIET := -D__QUIET__
 
 FLAGS := $(QUIET) $(DEBUG)
 

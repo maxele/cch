@@ -40,12 +40,12 @@
 #define CNR "\033[0;31m"
 #define CNG "\033[0;32m"
 
-#define INFO(f_, ...) printf(("\033[3;32m[INFO] "f_"\033[0m\n"), ##__VA_ARGS__)
-#define ERROR(f_, ...) printf(("\033[3;31m[ERROR] "f_"\033[0m\n"), ##__VA_ARGS__)
+#define INFO(f_, ...) printf(("\033[1;32m[INFO] "f_"\033[0m\n"), ##__VA_ARGS__)
+#define ERROR(f_, ...) printf(("\033[1;31m[ERROR] "f_"\033[0m\n"), ##__VA_ARGS__)
 
 // #define __DEBUG__
 #ifdef __DEBUG__
-#define DEBUG(f_, ...) printf(("\033[3;34m[DEBUG] "f_"\033[0m\n"), ##__VA_ARGS__)
+#define DEBUG(f_, ...) printf(("\033[1;34m[DEBUG] "f_"\033[0m\n"), ##__VA_ARGS__)
 #else
 #define DEBUG(f_, ...)
 #endif

@@ -34,7 +34,7 @@ void client_help() {
     printf(""CBW"  /help or /h      print this message"CCLR"\n");
     printf(""CBW"  /list or /l      get list of users"CCLR"\n");
     printf(""CBW"  /prevmsg or /pr  get previous messages"CCLR"\n");
-    printf(""CBW"  /clear or /clr   clear the screen"CCLR"\n");
+    printf(""CBW"  /clear or /clr   clear the screen (C-l)"CCLR"\n");
     printf(""CBW"  /quit or /q      closes the connection"CCLR"\n");
     printf(""CBW"  /rn <name>       rename yourself (min 3 char)"CCLR"\n");
 }
@@ -49,7 +49,7 @@ void recv_users(int clifd) {
     status = recv(clifd, buf, buf_size, 0);
     if (status < 0) return;
     printf("\033[F\033[2K\r"); // go up one line and clear it
-    printf("List of users: \n");
+    printf(CBW"List of users:"CCLR" \n");
     printf("\033[2K'");
     for (int i = 0; i < buf_size; i++) {
         if (buf[i] != 0)
@@ -186,11 +186,18 @@ void *send_loop(void *arg) {
     // struct me_t me = *(struct me_t *)arg;
     // char buf[MAX_BUF_LEN];
 
-    DEBUG("Getting previously sent messages");
+//    DEBUG("Getting previously sent messages");
+//    {
+//        char id = P_MSG_LIST;
+//        int status = write(me.clifd, &id, 1);
+//        if (status < 0) ERROR("Couldn't request msg_list");
+//    }
+    DEBUG("Getting connected users");
     {
-        char id = P_MSG_LIST;
+        char id = P_USER_LIST;
         int status = write(me.clifd, &id, 1);
-        if (status < 0) ERROR("Couldn't request msg_list");
+        if (status < 0) ERROR("Couldn't request user_list");
+        printf("Use /prevmsg to get previous msgs\n");
     }
 
     int pos = 0, status = 0;
@@ -207,17 +214,16 @@ void *send_loop(void *arg) {
                 break;
             } else if (me.buf[pos] == '\n') {
                 printf("\033[A "CBC"%s"CCLR" > ", me.username);
+            } else if (me.buf[pos] == 12) {
+                printf("\033[2J\033[H");
+                printf("\033[A "CBC"%s"CCLR" > ", me.username);
             } else if (me.buf[pos] == 127) { // Backspace
                 if (pos > 0) {
                     me.buf[pos] = 0;
                     me.buf[--pos] = 0;
                 }
-<<<<<<< HEAD
                 printf("\033[2K\r "CBC"%s"CCLR" > %s", me.username, me.buf);
-=======
-                printf("\r "CBC"%s"CCLR" > %s   ", me.username, me.buf);
                 printf("\r "CBC"%s"CCLR" > %s", me.username, me.buf);
->>>>>>> 98af15411667d3fed565897f3be2e36752c411ba
             } else {
                 pos++;
             }
