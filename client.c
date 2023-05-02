@@ -10,7 +10,7 @@ static struct termios oldt;
 int getch() {
     char c = 0;
     while ((c = getchar()) <= 0) {}
-    // DEBUG("%3d %c\n", c, c);
+    DEBUG("%3d %c\n", c, c);
     return c;
 }
 
@@ -127,7 +127,6 @@ void recv_msg_list(int clifd) {
     if (mo + bp+strlen(buf+bp+mo)+1 >= msg_list_size
             && *(buf+bp) == 'C' && *(buf+bp+1) == 0
             && strcmp(me.username, buf+bp+mo) == 0) {
-        // printf("\033[F\033[2K\r"); // go up one line and clear line
         printf("\033[2K\r"); // clear line
         DEBUG("Your own login msg");
         bp += mo + strlen(buf+bp+mo)+1;
@@ -139,7 +138,6 @@ void recv_msg_list(int clifd) {
         mo = strlen(buf+bp)+1;
 
         // skip last msg if it's your own login message
-        // printf("%d %lu ", bp, bp + mo + strlen(buf+bp+mo)+1);
         if (mo + bp+strlen(buf+bp+mo)+1 >= msg_list_size
                 && *(buf+bp) == 'C' && *(buf+bp+1) == 0
                 && strcmp(me.username, buf+bp+mo) == 0) {
@@ -148,11 +146,9 @@ void recv_msg_list(int clifd) {
         }
 
         if (*(buf+bp) == 'C' && *(buf+bp+1) == 0) {
-            // printf("User '%s' connected\n", buf+bp+mo);
             printf(""CNG"User "CBW"'%s'"CNG" connected"CCLR"\n", buf+bp+mo);
         } else if (*(buf+bp) == 'D' && *(buf+bp+1) == 0) {
             printf(""CNR"User "CBW"'%s'"CNR" disconnected"CCLR"\n", buf+bp+mo);
-            // printf("User '%s' disconnected\n", buf+bp+mo);
         } else if (*(buf+bp) == 'R' && *(buf+bp+1) == 0) {
             printf(CBW"'");
             int i = 0;
@@ -164,7 +160,6 @@ void recv_msg_list(int clifd) {
                 }
                 i++;
             }
-            // printf("User '%s' disconnected\n", buf+bp+mo);
             printf("'"CCLR"\n");
         } else {
             printf(""CBW"(%s)"CCLR": %s\n", buf+bp, buf+bp+mo);
@@ -178,20 +173,9 @@ void recv_msg_list(int clifd) {
         printf(CBC"--- RECIEVED %d MESSAGES ---\n"CCLR, nr);
     
     free(buf);
-    // printf("\033[2K\r"); // go up one line and clear it
-    // printf("MSG: %s: %s\n", username_buf, msg_buf);
 }
 
-void *send_loop(void *arg) {
-    // struct me_t me = *(struct me_t *)arg;
-    // char buf[MAX_BUF_LEN];
-
-//    DEBUG("Getting previously sent messages");
-//    {
-//        char id = P_MSG_LIST;
-//        int status = write(me.clifd, &id, 1);
-//        if (status < 0) ERROR("Couldn't request msg_list");
-//    }
+void *send_loop() {
     DEBUG("Getting connected users");
     {
         char id = P_USER_LIST;
@@ -260,14 +244,8 @@ void *send_loop(void *arg) {
             DEBUG("(%lu) Sending: %s", strlen(me.buf), me.buf);
             status = send(me.clifd, me.buf, strlen(me.buf), 0);
             break;
-        // case P_USER_LIST:
-        //     DEBUG("Recieving users");
-        //     break;
-        // case P_MSG_LIST:
-        //     DEBUG("Recieving previous messages");
-        //     break;
         case P_USER_RENAME:
-            // DEBUG("sending rename");
+            DEBUG("sending rename");
             send_user_rename(&me);
             break;
         default:
@@ -318,12 +296,12 @@ int client(char username[MAX_USERNAME_LEN], int port, char *host) {
     me.clifd = clifd;
     me.buf = buf;
     me.username = username;
-    pthread_create(&thread_id, NULL, send_loop, &me);
+    pthread_create(&thread_id, NULL, send_loop, NULL);
 
     char msg_buf[MAX_BUF_LEN];
     char username_buf[MAX_USERNAME_LEN];
 
-    printf("Type /help for help\n");
+    printf("Type /help for help or /prevmsg for previously sent msgs\n");
     char type;
     while (status > 0) {
         status = read(clifd, &type, 1);
@@ -363,6 +341,9 @@ int client(char username[MAX_USERNAME_LEN], int port, char *host) {
                 DEBUG("P_USER_RENAME");
                 recv_user_rename(me.clifd);
                 break;
+            case P_NAME_INVALID:
+                ERROR("Username shorter than 3 or already in use");
+                exit(1);
             default:
                 INFO("Unknown msg type: %d", type);
         }

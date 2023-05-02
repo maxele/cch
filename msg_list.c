@@ -32,6 +32,9 @@ void msg_list_add(msg_list_t *msg_list, char *username, char *msg_buf, char *fil
     int buflen = strlen(username) + strlen(msg_buf) + 2;
     char *buf;
     if (msg_list->b_used + buflen >= msg_list->b_max) {
+        // backup msgs
+        if (filename != 0)
+            msg_list_write(msg_list, filename);
         // increase size
         buf = msg_list->buf;
         msg_list->b_max += MSG_LIST_INCREMENT;
@@ -57,13 +60,12 @@ void msg_list_add(msg_list_t *msg_list, char *username, char *msg_buf, char *fil
     // DEBUG("%s: %s", buf, buf+a);
     // DEBUG("Adding '%s' from '%s' to msg_list_t", msg_buf, username);
     memcpy(msg_list->buf+msg_list->b_used, buf, buflen);
+
     msg_list->b_used += buflen;
     msg_list->nr++;
 
     free(buf);
 
-    if (filename != 0 && total_msg % MSG_LIST_BACKUP_NR == 0)
-        msg_list_write(msg_list, filename);
     total_msg++;
 }
 
@@ -93,6 +95,10 @@ void msg_list_read(msg_list_t *msg_list, char *filename) {
     }
 
     FILE *f = fopen(filename, "r");
+    if (f <= 0) {
+        ERROR("Couldn't open file");
+        return;
+    }
     char buf[32];
     fscanf(f, "max: %s\n", buf);
     if (atoi(buf) >= 0)
@@ -129,4 +135,5 @@ void msg_list_write(msg_list_t *msg_list, char *filename) {
             fputc(msg_list->buf[i], f);
     }
     fclose(f);
+    INFO("Finished writing msg_list");
 }

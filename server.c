@@ -118,6 +118,8 @@ int handleclient(int clifd) {
     DEBUG("checking if username '%s' is valid", usernamebuf);
     if (strlen(usernamebuf) < 3) {
         INFO("username '%s' invalid", usernamebuf);
+        char id = P_NAME_INVALID;
+        status = write(clifd, &id, 1);
         close(clifd);
         return -1;
     }
@@ -186,6 +188,7 @@ int server(int port, char *filename) {
     client_list_init(&client_list);
 
     if (msg_list_file != 0) {
+        INFO("Reading msg_list");
         msg_list_read(&msg_list, msg_list_file);
     }
 

@@ -12,10 +12,10 @@ void help(char *filename) {
     printf("\n");
     printf("     "CBC"<username>"CCLR"     The username which should be used (max %d)\n", MAX_USERNAME_LEN);
     printf("     "CBC"-s"CCLR"             Enables server mode\n");
-    printf("     "CBC"-f <filename>"CCLR"  If given, all messages will be stored up into <filename>\n");
-    printf("                    and they will also be restored next time\n");
     printf("     "CBC"-p <port>"CCLR"      The port to which to connect to\n");
     printf("     "CBC"-h <hostname>"CCLR"  The host to which to connect to\n");
+    printf("     "CBC"-f <filename>"CCLR"\033[3;39m  If given, all messages will be stored up into <filename>\n");
+    printf("                    and they will also be restored next time "CBW"(EXPERIMENTAL)"CCLR"\n");
     exit(0);
 }
 
@@ -32,6 +32,12 @@ void hostnametoip(const char *hostname, char ip[16]) {
 }
 
 int main(int argc, char *argv[]) {
+    if (argc == 1) {
+        ERROR("Not enough arguments!");
+        help(argv[0]);
+        exit(1);
+    }
+
     bool isserver = false;
 
     char *username = 0;
@@ -48,6 +54,7 @@ int main(int argc, char *argv[]) {
                 port = argv[i+1];
             } else {
                 ERROR("No port given");
+                INFO("Use --help for help");
                 return 1;
             }
             i++;
@@ -57,6 +64,7 @@ int main(int argc, char *argv[]) {
                 hostname = argv[i+1];
             } else {
                 ERROR("No hostname given");
+                INFO("Use --help for help");
                 return 1;
             }
             i++;
@@ -66,6 +74,7 @@ int main(int argc, char *argv[]) {
                 filename = argv[i+1];
             } else {
                 ERROR("No filename given");
+                INFO("Use --help for help");
                 return 1;
             }
             i++;
@@ -77,7 +86,7 @@ int main(int argc, char *argv[]) {
                 // DEBUG("Username: %s", argv[i]);
                 username = argv[i];
             } else {
-                ERROR("Username already set to %s", username);
+                ERROR("You can only supply one username ('%s' is the first one)", username);
                 return 0;
             }
         } else {

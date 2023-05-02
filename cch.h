@@ -32,6 +32,7 @@
 #define P_MSG_LIST 4
 #define P_SERVER_END 5
 #define P_USER_RENAME 6
+#define P_NAME_INVALID 7
 
 #define CCLR "\033[0;0m"
 #define CBC "\033[1;37m"
